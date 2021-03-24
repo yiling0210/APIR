@@ -1,4 +1,4 @@
-#' Aggregate the PSM level results from multiple search algorithms
+#' @title Aggregate the PSM level results from multiple search algorithms
 #'
 #' @param saveas a character string specifying the file names that scores the results of APIR.
 #' APIR outputs three files: a PSM level output, a peptide level output, and a protein level output,
