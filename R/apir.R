@@ -82,12 +82,16 @@
 #'
 #' @examples
 #'
+#' data(maxquant_target)
+#' data(maxquant_decoy)
+#' data(msgf_target)
+#' data(msgf_decoy)
 #' ### specifying arguments
 #' target_ls = list(maxquant_target, msgf_target)
 #' names(target_ls) = c('maxquant', 'msgf')
 #' decoy_ls = list(maxquant_decoy, msgf_decoy)
 #'
-#' ifadjust = c(T, T)
+#' ifadjust = c(TRUE, TRUE)
 #' scoreColTitle = c('PEP','QValue')
 #' fileColTitle = c("Raw.file", 'SpectrumFile')
 #' scannumColTitle = c('MS/MS.scan.number', "ScanNum")
@@ -107,15 +111,15 @@
 #' fileColTitle = fileColTitle,
 #' scannumColTitle = scannumColTitle,
 #' sequenceColTitle = sequenceColTitle,
-#' ifRecommendMasterProtein = T,
+#' ifRecommendMasterProtein = TRUE,
 #' masterproteinColTitle = masterproteinColTitle,
-#' ifRecommendModification = T,
+#' ifRecommendModification = TRUE,
 #' modificationColTitle = modificationColTitle,
 #' staticModification = c('C','K','N-term'),
 #' proteinPositionColTitle = proteinPositionColTitle,
 #' organism = NULL,
 #' phospho_dataset = NULL,
-#' ifAggregateAbundance = T,
+#' ifAggregateAbundance = TRUE,
 #' abundanceColTitle = abundanceColTitle)
 #'
 #' ###
@@ -130,41 +134,40 @@
 #' fileColTitle = fileColTitle,
 #' scannumColTitle = scannumColTitle,
 #' sequenceColTitle = sequenceColTitle,
-#' ifRecommendMasterProtein = T,
+#' ifRecommendMasterProtein = TRUE,
 #' masterproteinColTitle = masterproteinColTitle,
-#' ifRecommendModification = T,
+#' ifRecommendModification = TRUE,
 #' modificationColTitle = modificationColTitle,
 #' staticModification = c('C','K','N-term'),
 #' proteinPositionColTitle = proteinPositionColTitle,
 #' organism = organism,
 #' phospho_dataset = PhosphoSitePlus,
-#' ifAggregateAbundance = T,
+#' ifAggregateAbundance = TRUE,
 #' abundanceColTitle = abundanceColTitle)
 #'
 #'
 
 
-
 apir = function(saveas,
-                FDR,
                 target_ls,
                 decoy_ls,
-                ifadjust,
                 scoreColTitle,
-                fileColTitle,
                 scannumColTitle,
                 sequenceColTitle,
-                ifRecommendMasterProtein,
-                masterproteinColTitle,
-                ifRecommendModification,
+                fileColTitle,
                 modificationColTitle,
-                staticModification,
+                masterproteinColTitle,
                 proteinPositionColTitle,
-                organism,
+                abundanceColTitle=NULL,
+                ifadjust,
+                ifAggregateAbundance ,
+                ifRecommendMasterProtein,
+                ifRecommendModification ,
+                staticModification,
                 phospho_dataset,
-                ifAggregateAbundance,
-                abundanceColTitle,
-                ncores = parallel::detectCores() - 1){
+                organism,
+                FDR,
+                ncores = detectCores() - 1){
 
   method_name = names(target_ls)
   n_method = length(target_ls)
@@ -270,37 +273,37 @@ apir = function(saveas,
   match_examined = list()
 
   ########## find the first set ############
-    psm_bym = lapply(method_left, function(i_method){
-      # print(i_method)
-      if( ifadjust[i_method] ){
-        # print('adjust')
-        dat_target = target_ls[[i_method]]
-        dat_target = dat_target[! dat_target$match_id %in% unlist(match_examined),,drop = F ]
-        dat_decoy = decoy_ls[[i_method]]
-        if(nrow(dat_target) >0){
-          psm_i = apir_select(FDR = FDR,
-                              target_match = dat_target$match_id,
-                              target_query = dat_target$query,
-                              signal = dat_target$scores,
-                              decoy_match = dat_decoy$match_id,
-                              decoy_query = dat_decoy$query,
-                              control = dat_decoy$scores,
-                              ncores = ncores)
-        }else{
-          psm_i = character(0)
-        }
-
-        return(psm_i)
-
-        }else{
-          # print('not adjust')
-
-          x = target_ls_tot[[i_method]]
-          unique(x$match_id[x[,scoreColTitle[i_method]] <= FDR])
+  psm_bym = lapply(method_left, function(i_method){
+    # print(i_method)
+    if( ifadjust[i_method] ){
+      # print('adjust')
+      dat_target = target_ls[[i_method]]
+      dat_target = dat_target[! dat_target$match_id %in% unlist(match_examined),,drop = F ]
+      dat_decoy = decoy_ls[[i_method]]
+      if(nrow(dat_target) >0){
+        psm_i = apir_select(FDR = FDR,
+                            target_match = dat_target$match_id,
+                            target_query = dat_target$query,
+                            signal = dat_target$scores,
+                            decoy_match = dat_decoy$match_id,
+                            decoy_query = dat_decoy$query,
+                            control = dat_decoy$scores,
+                            ncores = ncores)
+      }else{
+        psm_i = character(0)
       }
-      # print(i_method)
 
-    })
+      return(psm_i)
+
+    }else{
+      # print('not adjust')
+
+      x = target_ls_tot[[i_method]]
+      unique(x$match_id[x[,scoreColTitle[i_method]] <= FDR])
+    }
+    # print(i_method)
+
+  })
 
 
   which2add = find_optimal_output( object_to_max = 'peptide',psm_bym)
@@ -334,19 +337,19 @@ apir = function(saveas,
       return(psm_i)
     })
 
-      if( all(sapply(psm_bym,length) == 0 )){
-        # print('The remaining search engines all found 0 psms')
-        break
-      }
-
-      which2add = find_optimal_output( object_to_max = 'peptide',psm_bym)
-      match_examined = append(match_examined, list(target_ls[[method_left[which2add]]]$match_id))
-      # print(paste0('adding method ', method_left[which2add]))
-      method_added = c(method_added, method_left[which2add])
-      method_left = setdiff(1:n_method,  method_added)
-      # print(paste0('method left to examine ', paste0(method_left, collapse = ' ')))
-      final_disc = append(final_disc, list(psm_bym[[which2add]]))
+    if( all(sapply(psm_bym,length) == 0 )){
+      # print('The remaining search engines all found 0 psms')
+      break
     }
+
+    which2add = find_optimal_output( object_to_max = 'peptide',psm_bym)
+    match_examined = append(match_examined, list(target_ls[[method_left[which2add]]]$match_id))
+    # print(paste0('adding method ', method_left[which2add]))
+    method_added = c(method_added, method_left[which2add])
+    method_left = setdiff(1:n_method,  method_added)
+    # print(paste0('method left to examine ', paste0(method_left, collapse = ' ')))
+    final_disc = append(final_disc, list(psm_bym[[which2add]]))
+  }
 
 
 
@@ -375,71 +378,71 @@ apir = function(saveas,
 
   ########################################
 
-    print('Performing protein inference and aggregating abundances...')
-    if(ifAggregateAbundance){
-      abundance_methods = lapply(1:n_method, function(i){
-        # print(i)
-        x = target_ls_tot[[i]][,  abundanceColTitle[[i]]]
-        x[match(final_disc, target_ls_tot[[i]]$match_id),]
-      })
+  print('Performing protein inference and aggregating abundances...')
+  if(ifAggregateAbundance){
+    abundance_methods = lapply(1:n_method, function(i){
+      # print(i)
+      x = target_ls_tot[[i]][,  abundanceColTitle[[i]]]
+      x[match(final_disc, target_ls_tot[[i]]$match_id),]
+    })
 
-      abundance_aggregated = data.frame(colnormalize_abundance(abundance_methods))
-      names(abundance_aggregated) = paste0('aggregatedAbundance.channel',1:length(abundanceColTitle[[1]]))
-    }
-    if(ifRecommendMasterProtein){
-      masterproteins = lapply(1:n_method, function(i){
-        # print(i)
-        x = target_ls_tot[[i]][, masterproteinColTitle[[i]]]
+    abundance_aggregated = data.frame(colnormalize_abundance(abundance_methods))
+    names(abundance_aggregated) = paste0('aggregatedAbundance.channel',1:length(abundanceColTitle[[1]]))
+  }
+  if(ifRecommendMasterProtein){
+    masterproteins = lapply(1:n_method, function(i){
+      # print(i)
+      x = target_ls_tot[[i]][, masterproteinColTitle[[i]]]
+      x[match(final_disc, target_ls_tot[[i]]$match_id)]
+    })
+    masterproteins = as.data.frame(masterproteins, stringsAsFactors = F)
+    masterprotein_recommended = recommend_masterproteins(masterproteins)
+
+    if(!is.null(proteinPositionColTitle)){
+      seqprositionsinprotein = lapply(1:n_method, function(i){
+        x = target_ls_tot[[i]][, proteinPositionColTitle[i]]
         x[match(final_disc, target_ls_tot[[i]]$match_id)]
       })
-      masterproteins = as.data.frame(masterproteins, stringsAsFactors = F)
-      masterprotein_recommended = recommend_masterproteins(masterproteins)
-
-      if(!is.null(proteinPositionColTitle)){
-        seqprositionsinprotein = lapply(1:n_method, function(i){
-          x = target_ls_tot[[i]][, proteinPositionColTitle[i]]
-          x[match(final_disc, target_ls_tot[[i]]$match_id)]
-        })
-        seqprositionsinprotein = as.data.frame(seqprositionsinprotein)
-        seqposition_recommended = recommend_seqposition(seqprositionsinprotein, masterprotein_recommended )
-
-      }
-
+      seqprositionsinprotein = as.data.frame(seqprositionsinprotein)
+      seqposition_recommended = recommend_seqposition(seqprositionsinprotein, masterprotein_recommended )
 
     }
 
-    if(ifRecommendModification){
 
-      modifications_methods = lapply(1:n_method, function(i){
-        # print(i)
-        x = target_ls_tot[[i]][, modificationColTitle[i]]
-        x[match(final_disc, target_ls_tot[[i]]$match_id)]
-      })
-      modifications_methods = as.data.frame(modifications_methods, stringsAsFactors = F)
-      ############ if phospho_dataset is supplied, we will have recommend using that
-      ############ otherwise, just majority vote
-      modifications_recommended = recommend_modifications(method_name,
+  }
+
+  if(ifRecommendModification){
+
+    modifications_methods = lapply(1:n_method, function(i){
+      # print(i)
+      x = target_ls_tot[[i]][, modificationColTitle[i]]
+      x[match(final_disc, target_ls_tot[[i]]$match_id)]
+    })
+    modifications_methods = as.data.frame(modifications_methods, stringsAsFactors = F)
+    ############ if phospho_dataset is supplied, we will have recommend using that
+    ############ otherwise, just majority vote
+    modifications_recommended = recommend_modifications(method_name,
                                                         modifications_methods,
                                                         masterprotein_recommended,
                                                         phospho_dataset,
                                                         organism = organism,
                                                         staticModification = staticModification)
-    }
-    if(ifRecommendModification & ifRecommendMasterProtein){
-      recommendmod_colname = ifelse(is.null(phospho_dataset),"modifications_recommended","modifications_recommended_phosphoSitePlus" )
-      modifications_in_proteins = find_modifications_in_protein(seqposition_recommended = seqposition_recommended,
-                                                                modifications_recommended = modifications_recommended[,recommendmod_colname])
-    }
+  }
+  if(ifRecommendModification & ifRecommendMasterProtein){
+    recommendmod_colname = ifelse(is.null(phospho_dataset),"modifications_recommended","modifications_recommended_phosphoSitePlus" )
+    modifications_in_proteins = find_modifications_in_protein(seqposition_recommended = seqposition_recommended,
+                                                              modifications_recommended = modifications_recommended[,recommendmod_colname])
+  }
 
 
 
-    print('Formatting the final output...')
+  print('Formatting the final output...')
 
-    qval_methods = lapply(1:n_method, function(i){
-      x = target_ls_tot[[i]][,scoreColTitle[i]]
-      x[match(final_disc, target_ls_tot[[i]]$match_id)]
-    })
-    names(qval_methods) = paste0(method_name,sep = '.', 'q-values')
+  qval_methods = lapply(1:n_method, function(i){
+    x = target_ls_tot[[i]][,scoreColTitle[i]]
+    x[match(final_disc, target_ls_tot[[i]]$match_id)]
+  })
+  names(qval_methods) = paste0(method_name,sep = '.', 'q-values')
 
   if(!is.null(saveas)){
 
@@ -450,13 +453,13 @@ apir = function(saveas,
     names(modifications_methods) = paste0(method_name,sep = '.', 'Modifications')
 
     out_core = cbind.data.frame(scannum = scannum,
-                           rawfile = rawfile,
-                           sequence = peptideseq,
-                           searchEngine = searchEngine,
-                           # qval_methods,
-                           # masterprotein_union = pro_tot,
-                           # modifications_methods,
-                           stringsAsFactors = F
+                                rawfile = rawfile,
+                                sequence = peptideseq,
+                                searchEngine = searchEngine,
+                                # qval_methods,
+                                # masterprotein_union = pro_tot,
+                                # modifications_methods,
+                                stringsAsFactors = F
     )
 
 
@@ -512,11 +515,11 @@ apir = function(saveas,
 
       modifications_recommended = unique(x_i[, recommendmod_colname])
 
-      abundance_aggregated = matrix(colSums(x_i[,grep(pattern = 'ggregatedAbundance.',x = colname_outpepseq)],na.rm = T),nrow =1)
+      abundance_aggregated = matrix(colSums(x_i[,grep(pattern = 'ggregatedAbundance.',x = colname_outpepseq)],na.rm = TRUE),nrow =1)
       abundance_aggregated = as.data.frame(abundance_aggregated)
       abundance_aggregated = t(apply(abundance_aggregated, 1, function(v){
         # mean(unlist(
-        v/sum(v,na.rm = T)*100*ncol(abundance_aggregated)
+        v/sum(v,na.rm = TRUE)*100*ncol(abundance_aggregated)
         # ))
       }))
       colnames(abundance_aggregated) =  colname_outpepseq[grep(pattern = 'ggregatedAbundance.',x = colname_outpepseq)]
@@ -534,15 +537,15 @@ apir = function(saveas,
 
 
       x_i_new = cbind.data.frame(sequence = sequence,
-                       modifications_recommended = modifications_recommended,
-                       spectrumID = spectrumID,
-                       searchEngine = searchEngine,
-                       masterprotein_recommended,
-                       position_in_protein_recommended = positions_rec,
-                       modifications_in_proteins = modifications_in_proteins,
-                       abundance_aggregated ,
-                      stringsAsFactors = F
-                       )
+                                 modifications_recommended = modifications_recommended,
+                                 spectrumID = spectrumID,
+                                 searchEngine = searchEngine,
+                                 masterprotein_recommended,
+                                 position_in_protein_recommended = positions_rec,
+                                 modifications_in_proteins = modifications_in_proteins,
+                                 abundance_aggregated ,
+                                 stringsAsFactors = F
+      )
       return(x_i_new)
     })
     out_pepseq = Reduce('rbind.data.frame', out_pepseq)
@@ -587,7 +590,7 @@ apir = function(saveas,
 
       aggregated_abundance = x_i[, grepl('Abundance', colname_outpro)]
       aggregated_abundance = colSums(aggregated_abundance)
-      aggregated_abundance = aggregated_abundance/sum( aggregated_abundance, na.rm =T)*100*length(aggregated_abundance)
+      aggregated_abundance = aggregated_abundance/sum( aggregated_abundance, na.rm =TRUE)*100*length(aggregated_abundance)
       aggregated_abundance = data.frame(matrix(aggregated_abundance, nrow = 1))
       colnames(aggregated_abundance) = colname_outpro[grepl('Abundance', colname_outpro)]
       x_i_new = cbind.data.frame(masterprotein_recommended = masterprotein_recommended,
@@ -602,15 +605,16 @@ apir = function(saveas,
     write.xlsx(out_pro, file = saveas_pro)
   }
 
-    # re = list(psm = final_disc,
-    #           pepseq = peptideseq,
-    #           masterpro_tot = as.vector(pro_tot),
-    #           masterpro_recommend = masterprotein_recommended)
-    # if(ifRecommendModification){
-    #   re = append(re, list(modifications_recommended_phosphoSitePlus = modifications_recommended[,2],
-    #                        modifications_recommended = modifications_recommended[,1]))
-    # }
-    #
-    # return(re)
-    return(NULL)
+  # re = list(psm = final_disc,
+  #           pepseq = peptideseq,
+  #           masterpro_tot = as.vector(pro_tot),
+  #           masterpro_recommend = masterprotein_recommended)
+  # if(ifRecommendModification){
+  #   re = append(re, list(modifications_recommended_phosphoSitePlus = modifications_recommended[,2],
+  #                        modifications_recommended = modifications_recommended[,1]))
+  # }
+  #
+  # return(re)
+  return(NULL)
+
 }
