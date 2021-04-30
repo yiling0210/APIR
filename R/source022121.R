@@ -75,7 +75,6 @@
 #' @export
 #' @importFrom parallel mclapply detectCores
 #' @importFrom openxlsx write.xlsx read.xlsx
-#' @importFrom readr parse_number
 #' @references
 #' @author Yiling Chen, \email{yiling0210@ucla.edu}
 #' @author Jingyi Jessica Li, \email{jli@stat.ucla.edu}

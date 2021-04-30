@@ -1,5 +1,5 @@
 
-readr = function (x, na = c("", "NA"), locale = default_locale(), trim_ws = TRUE){
+parse_number = function (x, na = c("", "NA"), locale = default_locale(), trim_ws = TRUE){
   parse_vector(x, col_number(), na = na, locale = locale, trim_ws = trim_ws)
 }
 
@@ -344,7 +344,7 @@ recommend_modifications = function(method_name,
       }
 
       re_siteplus = c(staticmod, re_siteplus)
-      positions = readr::parse_number(re_siteplus[-1])
+      positions = parse_number(re_siteplus[-1])
       re_siteplus = c(re_siteplus[1],re_siteplus[-1][order(positions)] )
       re_siteplus = paste(re_siteplus, collapse = ";")
     }
