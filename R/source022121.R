@@ -73,8 +73,9 @@
 #' @return \code{apir} outputs three excel files: one for the PSM level output, one for the peptide level, and another one for the protein level.
 #' In its PSM level output, \code{apir} will append all columns that are in the target output from search algorithms.
 #' @export
-#'
-#' @import parallel
+#' @importFrom parallel mclapply detectCores
+#' @importFrom openxlsx write.xlsx read.xlsx
+#' @importFrom readr parse_number
 #' @references
 #' @author Yiling Chen, \email{yiling0210@ucla.edu}
 #' @author Jingyi Jessica Li, \email{jli@stat.ucla.edu}
