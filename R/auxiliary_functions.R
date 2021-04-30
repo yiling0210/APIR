@@ -1,5 +1,8 @@
 library(parallel)
-library(readr)
+
+readr = function (x, na = c("", "NA"), locale = default_locale(), trim_ws = TRUE){
+  parse_vector(x, col_number(), na = na, locale = locale, trim_ws = trim_ws)
+}
 
 clipper = function(signal, control, FDR,  ncores = detectCores() - 1 ){
 

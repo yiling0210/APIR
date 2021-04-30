@@ -75,7 +75,6 @@
 #' @export
 #'
 #' @import parallel
-#' @import readr
 #' @references
 #' @author Yiling Chen, \email{yiling0210@ucla.edu}
 #' @author Jingyi Jessica Li, \email{jli@stat.ucla.edu}
