@@ -73,19 +73,20 @@
 #' @return \code{apir} outputs three excel files: one for the PSM level output, one for the peptide level, and another one for the protein level.
 #' In its PSM level output, \code{apir} will append all columns that are in the target output from search algorithms.
 #' @export
-#' @importFrom parallel mclapply detectCores
-#' @importFrom openxlsx write.xlsx read.xlsx
+#' @import parallel
+#' @import openxlsx
 #' @import readr
 #' @references
 #' @author Yiling Chen, \email{yiling0210@ucla.edu}
 #' @author Jingyi Jessica Li, \email{jli@stat.ucla.edu}
 #'
 #' @examples
-#'
+#' ### load data
 #' data(maxquant_target)
 #' data(maxquant_decoy)
 #' data(msgf_target)
 #' data(msgf_decoy)
+#'
 #' ### specifying arguments
 #' target_ls = list(maxquant_target, msgf_target)
 #' names(target_ls) = c('maxquant', 'msgf')
@@ -429,7 +430,7 @@ apir = function(saveas,
                                                         staticModification = staticModification)
   }
   if(ifRecommendModification & ifRecommendMasterProtein){
-    recommendmod_colname = ifelse(is.null(phospho_dataset),"modifications_recommended","modifications_recommended_phosphoSitePlus" )
+    recommendmod_colname = ifelse(is.null(phospho_dataset),"modifications_recommended","modifications_recommended_PSP" )
     modifications_in_proteins = find_modifications_in_protein(seqposition_recommended = seqposition_recommended,
                                                               modifications_recommended = modifications_recommended[,recommendmod_colname])
   }

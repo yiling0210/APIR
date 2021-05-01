@@ -1,4 +1,6 @@
-
+library(parallel)
+library(openxlsx)
+library(readr)
 # parse_number = function (x, na = c("", "NA"), locale = default_locale(), trim_ws = TRUE){
 #   parse_vector(x, col_number(), na = na, locale = locale, trim_ws = trim_ws)
 # }
@@ -358,7 +360,7 @@ recommend_modifications = function(method_name,
 
 
   })
-  if(is.atomic(recommended_modifications)){
+  if(is.null(dim(recommended_modifications))){
     recommended_modifications = matrix(recommended_modifications, ncol = 1)
   }else{
     recommended_modifications = t(recommended_modifications)
