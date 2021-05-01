@@ -66,12 +66,14 @@
 #' \code{sequenceColTitle}, \code{fileColTitle},\code{modificationColTitle}, \code{masterproteinColTitle},
 #' \code{proteinPositionColTitle}, \code{abundanceColTitle}.
 #'
+#' For detailed instructions on how to use APIR, please refer to our \href{http://stackoverflow.com/}{online documentation} and \href{http://stackoverflow.com/}{video tutorial}.
+#'
 #'
 #'
 #'
 #'
 #' @return \code{apir} outputs three excel files: one for the PSM level output, one for the peptide level, and another one for the protein level.
-#' In its PSM level output, \code{apir} will append all columns that are in the target output from search algorithms.
+#' \code{apir} will append all columns from the PSM level output of individual search algorithms to its combined PSM level results.
 #' @export
 #' @import parallel
 #' @import openxlsx
@@ -150,24 +152,24 @@
 
 
 apir = function(saveas,
+                FDR,
                 target_ls,
                 decoy_ls,
+                ifadjust,
                 scoreColTitle,
+                fileColTitle,
                 scannumColTitle,
                 sequenceColTitle,
-                fileColTitle,
-                modificationColTitle,
+                ifRecommendMasterProtein,
                 masterproteinColTitle,
                 proteinPositionColTitle,
-                abundanceColTitle=NULL,
-                ifadjust,
-                ifAggregateAbundance ,
-                ifRecommendMasterProtein,
-                ifRecommendModification ,
+                ifRecommendModification,
+                modificationColTitle,
                 staticModification,
-                phospho_dataset,
                 organism,
-                FDR,
+                phospho_dataset,
+                ifAggregateAbundance,
+                abundanceColTitle,
                 ncores = detectCores() - 1){
 
   method_name = names(target_ls)

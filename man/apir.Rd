@@ -6,24 +6,24 @@
 \usage{
 apir(
   saveas,
+  FDR,
   target_ls,
   decoy_ls,
+  ifadjust,
   scoreColTitle,
+  fileColTitle,
   scannumColTitle,
   sequenceColTitle,
-  fileColTitle,
-  modificationColTitle,
+  ifRecommendMasterProtein,
   masterproteinColTitle,
   proteinPositionColTitle,
-  abundanceColTitle = NULL,
-  ifadjust,
-  ifAggregateAbundance,
-  ifRecommendMasterProtein,
   ifRecommendModification,
+  modificationColTitle,
   staticModification,
-  phospho_dataset,
   organism,
-  FDR,
+  phospho_dataset,
+  ifAggregateAbundance,
+  abundanceColTitle,
   ncores = detectCores() - 1
 )
 }
@@ -32,6 +32,8 @@ apir(
 APIR outputs three files: a PSM level output, a peptide level output, and a protein level output,
 whose names would be what is specified plus output levels.
 For example, if the input string of \code{saveas} is "apir_output.xlsx", the saved PSM output would be "apir_output_psm.xlsx", the saved peptide output would be "apir_output_pepseq.xlsx", and the protein output would be "apir_output_pro.xlsx".}
+
+\item{FDR}{the target FDR threshold}
 
 \item{target_ls}{a named list of target PSM level output from search algorithms that need to combined.
 Each element of the list is a data frame object.
@@ -43,9 +45,17 @@ Each element of the list is a data frame object.
 Its length should be of the same as \code{target_ls}, and the order of search algorithms stored should match that in \code{target_ls}.
 We recommend users to input the complete decoy PSM level output by setting the FDR of search algorithms to be 1.}
 
+\item{ifadjust}{a logical vector specifying if in the first round of identification q-value/pep thresholding should be applied, instead of APIR-adjust, to each search algorithm.
+Its length should be of the same as \code{target_ls}, and the order of search algorithms stored should match that in \code{target_ls}.
+We suggest users input a vector of \code{TRUE} if users are not sure the FDR control of individual search algorithms.}
+
 \item{scoreColTitle}{a string vector specifying the column names of scores in \code{target_ls}.
 Note that within a search algorithm, the column names of scores in the target output should match that in the decoy output.
 We recommend users to input the column names of q-values or posterior error probabilities.
+Its length should be of the same as \code{target_ls}, and the order of search algorithms stored should match that in \code{target_ls}.}
+
+\item{fileColTitle}{a string vector specifying the column names of mass spectrum files in \code{target_ls}.
+Note that within a search algorithm, the column names of mass spectrum files in the target output should match that in the decoy output.
 Its length should be of the same as \code{target_ls}, and the order of search algorithms stored should match that in \code{target_ls}.}
 
 \item{scannumColTitle}{a string vector specifying the column names of scan numbers in \code{target_ls}.
@@ -56,13 +66,8 @@ Its length should be of the same as \code{target_ls}, and the order of search al
 Note that within a search algorithm, the column names of peptide sequences in the target output should match that in the decoy output.
 Its length should be of the same as \code{target_ls}, and the order of search algorithms stored should match that in \code{target_ls}.}
 
-\item{fileColTitle}{a string vector specifying the column names of mass spectrum files in \code{target_ls}.
-Note that within a search algorithm, the column names of mass spectrum files in the target output should match that in the decoy output.
-Its length should be of the same as \code{target_ls}, and the order of search algorithms stored should match that in \code{target_ls}.}
-
-\item{modificationColTitle}{a string vector specifying the column names of modifications in \code{target_ls}.
-Note that within a search algorithm, the column names of modifications in the target output should match that in the decoy output.
-Its length should be of the same as \code{target_ls}, and the order of search algorithms stored should match that in \code{target_ls}.}
+\item{ifRecommendMasterProtein}{a logical specifying if a master protein should be aggregated using majority note.
+If specified as \code{TRUE}, \code{masterproteinColTitle} also needs to be specified.}
 
 \item{masterproteinColTitle}{a string vector specifying the column names of master proteins in \code{target_ls}.
 Note that within a search algorithm, the column names of master proteins in the target output should match that in the decoy output.
@@ -72,42 +77,37 @@ Its length should be of the same as \code{target_ls}, and the order of search al
 Note that within a search algorithm, the column names of master proteins in the target output should match that in the decoy output.
 Its length should be of the same as \code{target_ls}, and the order of search algorithms stored should match that in \code{target_ls}.}
 
-\item{abundanceColTitle}{a list of string vectors specifying the abundance column names in each search algorithm.
-#' Note that within a search algorithm, the column names of abundances in the target output should match that in the decoy output.
-Its length should be of the same as \code{target_ls}, and the order of search algorithms stored should match that in \code{target_ls}.}
-
-\item{ifadjust}{a logical vector specifying if in the first round of identification q-value/pep thresholding should be applied, instead of APIR-adjust, to each search algorithm.
-Its length should be of the same as \code{target_ls}, and the order of search algorithms stored should match that in \code{target_ls}.
-We suggest users input a vector of \code{TRUE} if users are not sure the FDR control of individual search algorithms.}
-
-\item{ifAggregateAbundance}{a logical specifying if abundances should be aggregated.
-If specified as \code{TRUE}, \code{abundanceColTitle} also needs to be specified.}
-
-\item{ifRecommendMasterProtein}{a logical specifying if a master protein should be aggregated using majority note.
-If specified as \code{TRUE}, \code{masterproteinColTitle} also needs to be specified.}
-
 \item{ifRecommendModification}{a logical specifying if modifications should be aggregated.
 If specified as \code{TRUE}, \code{modificationColTitle} also needs to be specified.}
+
+\item{modificationColTitle}{a string vector specifying the column names of modifications in \code{target_ls}.
+Note that within a search algorithm, the column names of modifications in the target output should match that in the decoy output.
+Its length should be of the same as \code{target_ls}, and the order of search algorithms stored should match that in \code{target_ls}.}
 
 \item{staticModification}{a vector of static modification sites.
 Could be one or more from "\code{C}"(Carbamidomethyl), "\code{K}"(TMT6plex), and "\code{N-term}"(TMT6plex).
 The default is \code{c('C','K','N-term')}.}
 
-\item{phospho_dataset}{a string specifying the location of the Phosphorylation_site_dataset downloaded from PhosphoSitePlus.
-If not supplied, modifications sites are aggregated only based in frequency.
-If supplied, modification sites are aggregated twice, once by frequency, once by both frequency and literature. See details.}
-
 \item{organism}{a character string specifying the organism of your sample.
 Could be any type available in the \code{ORGANISM} of \code{phospho_dataset}.
 Only needed if phospho_dataset is not NULL.}
 
-\item{FDR}{the target FDR threshold}
+\item{phospho_dataset}{a string specifying the location of the Phosphorylation_site_dataset downloaded from PhosphoSitePlus.
+If not supplied, modifications sites are aggregated only based in frequency.
+If supplied, modification sites are aggregated twice, once by frequency, once by both frequency and literature. See details.}
+
+\item{ifAggregateAbundance}{a logical specifying if abundances should be aggregated.
+If specified as \code{TRUE}, \code{abundanceColTitle} also needs to be specified.}
+
+\item{abundanceColTitle}{a list of string vectors specifying the abundance column names in each search algorithm.
+#' Note that within a search algorithm, the column names of abundances in the target output should match that in the decoy output.
+Its length should be of the same as \code{target_ls}, and the order of search algorithms stored should match that in \code{target_ls}.}
 
 \item{ncores}{the number of cores for parallel computing. The default is \code{parallel::detectCores()-1}.}
 }
 \value{
 \code{apir} outputs three excel files: one for the PSM level output, one for the peptide level, and another one for the protein level.
-In its PSM level output, \code{apir} will append all columns that are in the target output from search algorithms.
+\code{apir} will append all columns from the PSM level output of individual search algorithms to its combined PSM level results.
 }
 \description{
 Aggregate the PSM level results from multiple search algorithms
@@ -118,6 +118,8 @@ The following arguments, if specified, should have the same lengths as the numbe
 \code{target_ls}, \code{decoy_ls}, \code{ifadjust}, \code{scoreColTitle}, \code{scannumColTitle},
 \code{sequenceColTitle}, \code{fileColTitle},\code{modificationColTitle}, \code{masterproteinColTitle},
 \code{proteinPositionColTitle}, \code{abundanceColTitle}.
+
+For detailed instructions on how to use APIR, please refer to our \href{http://stackoverflow.com/}{online documentation} and \href{http://stackoverflow.com/}{video tutorial}.
 }
 \examples{
 ### load data
