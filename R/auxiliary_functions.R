@@ -166,8 +166,8 @@ colnormalize_abundance = function(abundance_methods){
   # return(t(abundance_scaled))
 }
 
-recommend_masterproteins = function(masterproteins){
-  temp = sapply(1:nrow(masterproteins), function(i){
+recommend_masterproteins = function(masterproteins, ncores ){
+  temp = mclapply(1:nrow(masterproteins), function(i){
     x = masterproteins[i,]
     x = as.character(x)
     if(all(is.na(x))){
@@ -177,7 +177,9 @@ recommend_masterproteins = function(masterproteins){
       tb = table(x)
       return(names(tb)[which.max(tb)])
     }
-  })
+  }, mc.cores = ncores)
+
+  temp = unlist(temp)
 
   return(temp)
 }
@@ -248,7 +250,8 @@ recommend_modifications = function(method_name,
                                    masterprotein_recommended,
                                    phospho_dataset,
                                    organism,
-                                   staticModification
+                                   staticModification,
+                                   ncores
 ){
 
   staticModification = substr(staticModification, 1,1)
@@ -261,7 +264,7 @@ recommend_modifications = function(method_name,
   })
 
 
-  recommended_modifications = sapply(1:n_matches,function(i){
+  recommended_modifications = mclapply(1:n_matches,function(i){
 
     x = as.character(modifications_methods[i,])
     h = strsplit(x, split ='; ')
@@ -359,12 +362,15 @@ recommend_modifications = function(method_name,
     }
 
 
-  })
-  if(is.null(dim(recommended_modifications))){
-    recommended_modifications = matrix(recommended_modifications, ncol = 1)
-  }else{
-    recommended_modifications = t(recommended_modifications)
-  }
+  }, mc.cores = ncores)
+
+  recommended_modifications = matrix(unlist(recommended_modifications), byrow = T, nrow = n_matches)
+
+  # if(is.null(dim(recommended_modifications))){
+  #   recommended_modifications = matrix(recommended_modifications, ncol = 1)
+  # }else{
+  #   recommended_modifications = t(recommended_modifications)
+  # }
 
   colnames(recommended_modifications) = if(is.null(phospho_dataset)){
     'modifications_recommended'
@@ -378,14 +384,13 @@ recommend_modifications = function(method_name,
 # mod = m
 # pos = p
 find_modifications_in_protein_byPSM = function(mod, pos){
-  prot = strsplit(pos, split = ' ')[[1]][1]
-  pos = strsplit(pos, split = ' ')[[1]][2]
+  prot = strsplit(pos, split = ' ')[[1]][1]  # extract protein from position
+  pos = strsplit(pos, split = ' ')[[1]][2] # extract peptide position from position
   st_pos = parse_number(pos)
-  # n_term = grepl(pattern = "\\(TMT6plex\\)",mod)
-  mod_type = regmatches(mod, gregexpr("(?=\\().*?(?<=\\))", mod, perl=T))[[1]]
+  mod_type = regmatches(mod, gregexpr("(?=\\().*?(?<=\\))", mod, perl=T))[[1]] # extract mod type with parenthesis
 
-  mod = unlist(strsplit(mod, split = '[()]'))
-  mod_pos = mod[seq(1, length(mod)-1, by = 2)]
+  mod = unlist(strsplit(mod, split = '[()]')) # separate mod type from sites
+  mod_pos = mod[seq(1, length(mod)-1, by = 2)] # extract sites by extracting the odd number position
   i = 1
   mod_pos_new = rep(NA, length(mod_pos))
   while(i <= length(mod_pos)){
@@ -393,14 +398,11 @@ find_modifications_in_protein_byPSM = function(mod, pos){
     if(!grepl(pattern = "[[:digit:]]+", mod_pos_i)){
       mod_pos_new[i] = mod_pos_i
       i = i + 1
-
     }else{
-
-      num =  unlist(regmatches(mod_pos_i, gregexpr("[[:digit:]]+", mod_pos_i)))
+      num = unlist(regmatches(mod_pos_i, gregexpr("[[:digit:]]+", mod_pos_i)))
       mod_pos_new[i] = gsub(pattern = num, replacement = as.character(as.numeric(num) + st_pos - 1), mod_pos_i)
       i = i + 1
     }
-
   }
   mod_ls = c(mod_pos_new, mod_type)
   mod_ls = mod_ls[rep(1:(length(mod)/2), each = 2) + c(0,length(mod)/2 )]
@@ -411,12 +413,13 @@ find_modifications_in_protein_byPSM = function(mod, pos){
 
 # seqposition_recommended = seqposition_recommended
 # modifications_recommended = modifications_recommended[,recommendmod_colname]
-find_modifications_in_protein = function(seqposition_recommended, modifications_recommended){
+find_modifications_in_protein = function(seqposition_recommended, modifications_recommended, ncores){
   n_match = length(seqposition_recommended)
-  modifications_recommended = gsub(pattern = "N-Term\\(TMT6plex\\);",x = modifications_recommended, replacement = "")
-  modifications_recommended = gsub(pattern = "N-Term\\(TMT6plex\\)",x = modifications_recommended, replacement = "")
-  modifications_in_proteins = sapply(1:n_match, function(i){
+  modifications_in_proteins = mclapply(1:n_match, function(i){
+
     m = modifications_recommended[i]
+    m = paste0(unlist(strsplit(m, split = ';'))[-1], collapse = ';')
+
     p = seqposition_recommended[i]
     if(m == ""){
       return(NA)
@@ -431,7 +434,7 @@ find_modifications_in_protein = function(seqposition_recommended, modifications_
     }
 
     return(re)
-  })
-
+  }, mc.cores = ncores)
+  modifications_in_proteins = unlist(modifications_in_proteins)
   return(modifications_in_proteins)
 }

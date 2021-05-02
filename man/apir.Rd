@@ -162,7 +162,8 @@ proteinPositionColTitle = proteinPositionColTitle,
 organism = NULL,
 phospho_dataset = NULL,
 ifAggregateAbundance = TRUE,
-abundanceColTitle = abundanceColTitle)
+abundanceColTitle = abundanceColTitle,
+ncores = 5)
 
 ###
 organism = 'human'
@@ -185,7 +186,8 @@ proteinPositionColTitle = proteinPositionColTitle,
 organism = organism,
 phospho_dataset = PhosphoSitePlus,
 ifAggregateAbundance = TRUE,
-abundanceColTitle = abundanceColTitle)
+abundanceColTitle = abundanceColTitle,
+ncores = 5)
 
 
 }

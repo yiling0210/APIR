@@ -123,7 +123,8 @@
 #' organism = NULL,
 #' phospho_dataset = NULL,
 #' ifAggregateAbundance = TRUE,
-#' abundanceColTitle = abundanceColTitle)
+#' abundanceColTitle = abundanceColTitle,
+#' ncores = 5)
 #'
 #' ###
 #' organism = 'human'
@@ -146,7 +147,8 @@
 #' organism = organism,
 #' phospho_dataset = PhosphoSitePlus,
 #' ifAggregateAbundance = TRUE,
-#' abundanceColTitle = abundanceColTitle)
+#' abundanceColTitle = abundanceColTitle,
+#' ncores = 5)
 #'
 #'
 
@@ -399,7 +401,7 @@ apir = function(saveas,
       x[match(final_disc, target_ls_tot[[i]]$match_id)]
     })
     masterproteins = as.data.frame(masterproteins, stringsAsFactors = F)
-    masterprotein_recommended = recommend_masterproteins(masterproteins)
+    masterprotein_recommended = recommend_masterproteins(masterproteins, ncores = ncores)
 
     if(!is.null(proteinPositionColTitle)){
       seqprositionsinprotein = lapply(1:n_method, function(i){
@@ -424,17 +426,19 @@ apir = function(saveas,
     modifications_methods = as.data.frame(modifications_methods, stringsAsFactors = F)
     ############ if phospho_dataset is supplied, we will have recommend using that
     ############ otherwise, just majority vote
-    modifications_recommended = recommend_modifications(method_name,
+    modifications_recommended = suppressWarnings(recommend_modifications(method_name,
                                                         modifications_methods,
                                                         masterprotein_recommended,
                                                         phospho_dataset,
                                                         organism = organism,
-                                                        staticModification = staticModification)
+                                                        staticModification = staticModification,
+                                                        ncores = ncores))
   }
   if(ifRecommendModification & ifRecommendMasterProtein){
     recommendmod_colname = ifelse(is.null(phospho_dataset),"modifications_recommended","modifications_recommended_PSP" )
     modifications_in_proteins = find_modifications_in_protein(seqposition_recommended = seqposition_recommended,
-                                                              modifications_recommended = modifications_recommended[,recommendmod_colname])
+                                                              modifications_recommended = modifications_recommended[,recommendmod_colname],
+                                                              ncores = ncores)
   }
 
 
