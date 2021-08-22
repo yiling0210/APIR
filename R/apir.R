@@ -495,7 +495,7 @@ apir = function(saveas,
     })
     out_psm = cbind.data.frame(out_core, as.data.frame(target_ls_unused, stringsAsFactors = F), stringsAsFactors = F)
     saveas_psm = gsub(x= saveas,pattern = '.xlsx', replacement = '_psm.xlsx' )
-    write.xlsx(out_psm, file = saveas_psm)
+    write.xlsx(out_psm, file = saveas_psm, overwrite = T)
 
     ######## start from here to add protein modifications
 
@@ -557,7 +557,7 @@ apir = function(saveas,
     })
     out_pepseq = Reduce('rbind.data.frame', out_pepseq)
     saveas_pepseq = gsub(x= saveas,pattern = '.xlsx', replacement = '_pepseq.xlsx' )
-    write.xlsx(out_pepseq, file = saveas_pepseq)
+    write.xlsx(out_pepseq, file = saveas_pepseq, overwrite = T)
 
 
     ################## convert to protein level output ##################
@@ -609,7 +609,7 @@ apir = function(saveas,
     })
     out_pro = Reduce('rbind.data.frame', out_pro)
     saveas_pro = gsub(x= saveas,pattern = '.xlsx', replacement = '_pro.xlsx' )
-    write.xlsx(out_pro, file = saveas_pro)
+    write.xlsx(out_pro, file = saveas_pro, overwrite = T)
   }
 
   # re = list(psm = final_disc,
