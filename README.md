@@ -11,7 +11,7 @@ APIR is a statistical framework that aggregates peptide-spectrum-matches (PSMs) 
 
 Users can refer to [our manuscript](https://www.biorxiv.org/content/10.1101/2021.09.08.459494v2) for a detailed description of the method and applications. For a detailed user manual, please see [User Manual](XXX).
 
-Any suggestions on the package are welcome! For technical problems, please report to Issues. For suggestions and comments on the method, please contact Yiling (yiling0210@ucla.edu) or Dr. Jingyi Jessica Li (jli@stat.ucla.edu).
+Any suggestions on the package are welcome! For technical problems, please report to Issues. For suggestions and comments on the method, please contact Yiling Chen (yiling0210@ucla.edu) or Dr. Jingyi Jessica Li (jli@stat.ucla.edu).
 
 ## Installation
 The package is not on CRAN yet. For installation please use the following codes in R
