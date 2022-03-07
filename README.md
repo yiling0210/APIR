@@ -9,7 +9,7 @@ Yiling Elaine Chen, Kyla Woyshner, MeiLu McDermott, Leo David Wang, and Jingyi J
 ## Introduction and tutorial
 APIR is a statistical framework that aggregates peptide-spectrum-matches (PSMs) identified by multiple database search algorithms with FDR control. APIR takes as input a target FDR threshold (such as 0.05) and the PSM level output from the search algorithms of interest and outputs a PSM level, a peptide level, and a protein level results file. 
 
-Users can refer to [our manuscript](https://www.biorxiv.org/content/10.1101/2021.09.08.459494v2) for a detailed description of the method and applications. For a detailed user manual, please see [User Manual](XXX).
+Users can refer to [our manuscript](https://www.biorxiv.org/content/10.1101/2021.09.08.459494v2) for a detailed description of the method and applications. For a detailed user manual, please see APIR_tutorial.pdf.
 
 Any suggestions on the package are welcome! For technical problems, please report to Issues. For suggestions and comments on the method, please contact Yiling Chen (yiling0210@ucla.edu) or Dr. Jingyi Jessica Li (jli@stat.ucla.edu).
 
